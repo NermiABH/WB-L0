@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+    stan:
+        image: nats-streaming
+        ports:
+            - "4222:4222"
+            - "8222:8222"
+        command:
+            - "--store"
+            - "file"
+            - "--dir"
+            - "data"
+    db:
+        restart: always
+        image: postgres
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_USER: "postgres"
+            POSTGRES_DB: "dbL0"
+            POSTGRES_PASSWORD: "pusinu48"
+        volumes:
+            - .:/db_data
+    migrate:
+        image: migrate/migrate
+        restart: always
+        links:
+            - db
+        depends_on:
+            - db
+        command: [ "-path", "/migrations", "-database", "postgres://postgres:pusinu48@db:5432/dbL0?sslmode=disable", "up" ]
+        volumes:
+            - ./migrations:/migrations
